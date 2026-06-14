@@ -12,6 +12,7 @@
     "socket.io": "^4.6.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "obj2gltf": "^3.2.0"
   }
 }
