@@ -1,0 +1,335 @@
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --blue: #4fc3f7;
+  --gold: #ffd740;
+  --red: #ef5350;
+  --green: #66bb6a;
+  --bg: #080c14;
+  --panel: rgba(6, 14, 26, 0.88);
+}
+
+body {
+  background: var(--bg);
+  color: #e0f0ff;
+  font-family: 'Courier New', Courier, monospace;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  user-select: none;
+}
+
+#game-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.hidden { display: none !important; }
+
+/* ── Loading ─────────────────────────────────────────── */
+#loading {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+
+.loading-box {
+  text-align: center;
+  width: 340px;
+}
+
+.loading-title {
+  font-size: 2.8em;
+  font-weight: bold;
+  color: var(--blue);
+  text-shadow: 0 0 30px var(--blue);
+  letter-spacing: 6px;
+  margin-bottom: 30px;
+}
+
+.loading-bar-wrap {
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  height: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.loading-bar {
+  background: var(--blue);
+  height: 100%;
+  width: 0%;
+  border-radius: 4px;
+  transition: width 0.2s ease;
+  box-shadow: 0 0 10px var(--blue);
+}
+
+.loading-text {
+  font-size: 0.85em;
+  color: #90caf9;
+}
+
+/* ── Overlay screens ──────────────────────────────────── */
+#lobby, #waiting-room, #end-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+}
+
+.overlay-box {
+  background: linear-gradient(160deg, #080f1e, #0d1a2e);
+  border: 1px solid rgba(79, 195, 247, 0.4);
+  border-radius: 14px;
+  padding: 44px 48px;
+  width: 420px;
+  max-width: 94vw;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(79, 195, 247, 0.18), 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.game-title {
+  font-size: 3em;
+  color: var(--blue);
+  text-shadow: 0 0 24px var(--blue);
+  letter-spacing: 5px;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #7cb8d8;
+  font-size: 0.88em;
+  margin-bottom: 28px;
+}
+
+.overlay-box h2 {
+  font-size: 1.7em;
+  color: var(--blue);
+  margin-bottom: 20px;
+}
+
+input {
+  display: block;
+  width: 100%;
+  padding: 11px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(79,195,247,0.35);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1em;
+  font-family: inherit;
+  margin-bottom: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus { border-color: var(--blue); }
+input::placeholder { color: #3a5060; }
+#room-code-input { text-transform: uppercase; letter-spacing: 4px; }
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn-green  { background: #2e7d32; color: #fff; }
+.btn-blue   { background: #1565c0; color: #fff; }
+.btn-purple { background: #6a1b9a; color: #fff; width: auto; padding: 12px 22px; }
+.btn-orange { background: #e65100; color: #fff; }
+.btn-gray   { background: #263238; color: #90a4ae; }
+.btn-red    { background: #b71c1c; color: #fff; padding: 9px; font-size: 0.9em; }
+
+.divider { color: #2a4a5a; font-size: 0.8em; margin: 6px 0 12px; }
+
+.join-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.join-row input { margin-bottom: 0; }
+
+.error-msg { color: var(--red); font-size: 0.85em; min-height: 20px; margin-top: 8px; }
+
+.room-code-display { font-size: 1.1em; margin-bottom: 8px; }
+.code-highlight { color: var(--blue); font-size: 1.4em; letter-spacing: 4px; font-weight: bold; }
+.muted { color: #4a6880; font-size: 0.82em; margin-bottom: 20px; }
+
+#player-list { margin: 12px 0; text-align: left; }
+.player-entry {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(79,195,247,0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9em;
+}
+.player-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+.end-score { font-size: 1.4em; color: var(--gold); margin: 16px 0 24px; font-weight: bold; }
+
+/* ── Game UI ─────────────────────────────────────────── */
+#game-ui {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#top-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 18px;
+  background: var(--panel);
+  border-bottom: 1px solid rgba(79,195,247,0.2);
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+  flex-wrap: wrap;
+}
+
+.stat {
+  font-size: 0.95em;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.04);
+}
+.stat span { color: var(--gold); margin-left: 5px; }
+.gold-stat span { color: var(--gold); }
+.lives-stat span { color: #ef9a9a; }
+.wave-stat span { color: #81d4fa; }
+.score-stat span { color: #a5d6a7; }
+
+#players-bar { display: flex; gap: 8px; margin-left: auto; }
+.player-badge {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+  background: rgba(255,255,255,0.07);
+}
+
+/* ── Tower Panel ─────────────────────────────────────── */
+#tower-panel {
+  position: absolute;
+  left: 14px;
+  top: 66px;
+  width: 195px;
+  background: var(--panel);
+  border: 1px solid rgba(79,195,247,0.2);
+  border-radius: 10px;
+  padding: 12px;
+  pointer-events: auto;
+  backdrop-filter: blur(6px);
+}
+
+.panel-label {
+  color: var(--blue);
+  font-size: 0.72em;
+  letter-spacing: 2px;
+  border-bottom: 1px solid rgba(79,195,247,0.2);
+  padding-bottom: 5px;
+  margin-bottom: 8px;
+}
+
+.tower-btn {
+  padding: 9px 10px;
+  margin-bottom: 7px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.tower-btn:hover { background: rgba(79,195,247,0.12); border-color: rgba(79,195,247,0.5); }
+.tower-btn.active { background: rgba(79,195,247,0.22); border-color: var(--blue); }
+.tower-btn.cant-afford { opacity: 0.35; cursor: not-allowed; }
+
+.t-name { font-weight: bold; font-size: 0.95em; }
+.t-stats { font-size: 0.68em; color: #90caf9; margin: 2px 0; }
+.t-cost { font-size: 0.82em; color: var(--gold); }
+
+#selection-info { font-size: 0.75em; color: #5a8090; padding: 6px 2px; line-height: 1.5; }
+#sell-panel { margin-top: 8px; }
+#sell-info { font-size: 0.82em; color: #ccc; margin-bottom: 7px; }
+
+/* ── Between Waves ───────────────────────────────────── */
+#between-waves-ui {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+#bw-content {
+  background: rgba(0,0,0,0.8);
+  border: 1px solid rgba(79,195,247,0.35);
+  border-radius: 8px;
+  padding: 10px 28px;
+  text-align: center;
+}
+#bw-title { font-size: 1em; color: var(--green); margin-bottom: 2px; }
+#bw-countdown { font-size: 0.85em; color: #90caf9; }
+
+/* ── Wave Banner ─────────────────────────────────────── */
+#wave-banner {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.88);
+  border: 2px solid var(--blue);
+  border-radius: 12px;
+  padding: 18px 44px;
+  font-size: 2em;
+  color: var(--blue);
+  text-align: center;
+  letter-spacing: 4px;
+  pointer-events: none;
+  animation: bannerAnim 3.5s forwards;
+}
+@keyframes bannerAnim {
+  0%   { opacity:0; transform: translate(-50%,-50%) scale(0.75); }
+  18%  { opacity:1; transform: translate(-50%,-50%) scale(1); }
+  75%  { opacity:1; }
+  100% { opacity:0; }
+}
+
+/* ── Message Log ─────────────────────────────────────── */
+#msg-log {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  text-align: right;
+  pointer-events: none;
+  font-size: 0.82em;
+}
+.msg {
+  animation: msgFade 3s forwards;
+  padding: 2px 0;
+}
+@keyframes msgFade {
+  0%  { opacity:1; }
+  70% { opacity:1; }
+  100%{ opacity:0; }
+}
