@@ -31,9 +31,9 @@
   <div class="overlay-box">
     <h1 class="game-title">UFO ASSAULT</h1>
     <p class="subtitle">Defend Earth from the alien invasion</p>
-    <input type="text" id="player-name" placeholder="Your Name" maxlength="20" autocomplete="off">
-    <button id="btn-solo"   class="btn btn-green">Solo Play</button>
-    <div class="divider">or play with a friend</div>
+    <input type="text" id="player-name" placeholder="Commander Name" maxlength="20" autocomplete="off">
+    <button id="btn-solo"   class="btn btn-green">Solo Mission</button>
+    <div class="divider">or join a co-op mission</div>
     <button id="btn-create" class="btn btn-blue">Create Room</button>
     <div class="join-row">
       <input type="text" id="room-code-input" placeholder="ROOM CODE" maxlength="5" autocomplete="off">
@@ -46,71 +46,130 @@
 <!-- Waiting Room -->
 <div id="waiting-room" class="hidden">
   <div class="overlay-box">
-    <h2>Waiting Room</h2>
-    <div class="room-code-display">Code: <span id="room-code-show" class="code-highlight"></span></div>
-    <p class="muted">Share with a friend to play co-op</p>
+    <h2>War Room</h2>
+    <div class="room-code-display">Access Code: <span id="room-code-show" class="code-highlight"></span></div>
+    <p class="muted">Share with allies to play co-op</p>
     <div id="player-list"></div>
     <button id="btn-copy-code"  class="btn btn-gray">Copy Code</button>
-    <button id="btn-start-game" class="btn btn-orange">Start Game</button>
+    <button id="btn-start-game" class="btn btn-orange">Launch Defense</button>
   </div>
 </div>
 
 <!-- Game HUD -->
 <div id="game-ui" class="hidden">
+
+  <!-- Top stat bar -->
   <div id="top-bar">
-    <div class="stat gold-stat">GOLD  <span id="gold-display">200</span></div>
-    <div class="stat lives-stat">LIVES <span id="lives-display">20</span></div>
-    <div class="stat wave-stat">WAVE  <span id="wave-display">0</span>/<span id="total-waves">10</span></div>
-    <div class="stat score-stat">SCORE <span id="score-display">0</span></div>
-    <div class="stat kills-stat">KILLS <span id="kills-display">0</span></div>
-    <div class="stat" id="enemy-count-stat" style="display:none">IN WAVE <span id="enemy-count">0</span></div>
-    <div class="stat" id="room-tag"></div>
+    <div class="stat gold-stat">
+      <div>
+        <span class="stat-label">GOLD</span>
+        <span class="stat-val" id="gold-display">200</span>
+      </div>
+    </div>
+    <div class="stat lives-stat" id="lives-stat-el">
+      <div>
+        <span class="stat-label">LIVES</span>
+        <span class="stat-val" id="lives-display">20</span>
+      </div>
+    </div>
+    <div class="stat wave-stat">
+      <div>
+        <span class="stat-label">WAVE</span>
+        <span class="stat-val"><span id="wave-display">0</span>/<span id="total-waves">10</span></span>
+      </div>
+    </div>
+    <div class="stat score-stat">
+      <div>
+        <span class="stat-label">SCORE</span>
+        <span class="stat-val" id="score-display">0</span>
+      </div>
+    </div>
+    <div class="stat kills-stat">
+      <div>
+        <span class="stat-label">KILLS</span>
+        <span class="stat-val" id="kills-display">0</span>
+      </div>
+    </div>
+    <div class="stat" id="enemy-count-stat" style="display:none">
+      <div>
+        <span class="stat-label">ENEMIES</span>
+        <span class="stat-val" id="enemy-count">0</span>
+      </div>
+    </div>
+    <div id="room-tag"></div>
     <div id="players-bar"></div>
+  </div>
+
+  <!-- Wave progress indicator -->
+  <div id="wave-progress-bar-wrap">
+    <div id="wave-progress-bar"></div>
   </div>
 
   <!-- Tower panel -->
   <div id="tower-panel">
-    <div class="panel-label">PLACE TOWER</div>
-    <div class="tower-btn" data-tower="ballista" data-cost="60">
-      <div class="t-name">Ballista</div>
-      <div class="t-stats">DMG 28 · RNG 7 · Fast</div>
-      <div class="t-cost">60 gold</div>
-    </div>
-    <div class="tower-btn" data-tower="cannon" data-cost="100">
-      <div class="t-name">Cannon</div>
-      <div class="t-stats">DMG 70 · RNG 7 · Med</div>
-      <div class="t-cost">100 gold</div>
-    </div>
-    <div class="tower-btn" data-tower="catapult" data-cost="150">
-      <div class="t-name">Catapult</div>
-      <div class="t-stats">DMG 140 · RNG 10 · SPLASH</div>
-      <div class="t-cost">150 gold</div>
-    </div>
-    <div class="tower-btn" data-tower="turret" data-cost="80">
-      <div class="t-name">Turret</div>
-      <div class="t-stats">DMG 13 · RNG 6 · Rapid</div>
-      <div class="t-cost">80 gold</div>
+    <div class="panel-header">Place Tower</div>
+    <div class="tower-list">
+      <div class="tower-btn" data-tower="ballista" data-cost="60">
+        <div class="t-icon t-icon-ballista">B</div>
+        <div class="t-info">
+          <div class="t-name">Ballista</div>
+          <div class="t-stats">Fast fire · Long range</div>
+          <div class="t-cost">60 gold</div>
+        </div>
+      </div>
+      <div class="tower-btn" data-tower="cannon" data-cost="100">
+        <div class="t-icon t-icon-cannon">C</div>
+        <div class="t-info">
+          <div class="t-name">Cannon</div>
+          <div class="t-stats">High damage · Medium</div>
+          <div class="t-cost">100 gold</div>
+        </div>
+      </div>
+      <div class="tower-btn" data-tower="catapult" data-cost="150">
+        <div class="t-icon t-icon-catapult">A</div>
+        <div class="t-info">
+          <div class="t-name">Catapult</div>
+          <div class="t-stats">Splash damage · Far</div>
+          <div class="t-cost">150 gold</div>
+        </div>
+      </div>
+      <div class="tower-btn" data-tower="turret" data-cost="80">
+        <div class="t-icon t-icon-turret">T</div>
+        <div class="t-info">
+          <div class="t-name">Turret</div>
+          <div class="t-stats">Rapid fire · Short</div>
+          <div class="t-cost">80 gold</div>
+        </div>
+      </div>
     </div>
 
     <!-- Selected tower info -->
-    <div id="sel-tower-info" class="hidden">
-      <div class="panel-label" style="margin-top:10px">SELECTED TOWER</div>
-      <div id="sel-name-level"></div>
+    <div id="sel-tower-info" class="sel-section hidden">
+      <div class="sel-name-row">
+        <span id="sel-name-level"></span>
+      </div>
       <div id="sel-owner"></div>
 
-      <div class="panel-label" style="margin-top:8px">TARGET MODE</div>
-      <div id="target-btns">
-        <button class="tgt-btn" data-mode="first">First</button>
-        <button class="tgt-btn" data-mode="last">Last</button>
-        <button class="tgt-btn" data-mode="strong">Strong</button>
-        <button class="tgt-btn" data-mode="close">Close</button>
+      <div class="tgt-section">
+        <div class="tgt-label">Target Mode</div>
+        <div id="target-btns">
+          <button class="tgt-btn" data-mode="first">First</button>
+          <button class="tgt-btn" data-mode="last">Last</button>
+          <button class="tgt-btn" data-mode="strong">Strongest</button>
+          <button class="tgt-btn" data-mode="close">Closest</button>
+        </div>
       </div>
 
-      <button id="btn-upgrade" class="btn btn-upgrade hidden"></button>
-      <button id="btn-sell"    class="btn btn-red"></button>
+      <div class="action-btns">
+        <button id="btn-upgrade" class="btn-upgrade hidden"></button>
+        <button id="btn-sell"    class="btn-sell"></button>
+      </div>
     </div>
 
-    <div id="placement-hint">Click a tower above, then click the map to place. Right-click to cancel.</div>
+    <div class="placement-hint" id="placement-hint">
+      Select a tower above, then click the map to place.<br>
+      Right-click to cancel.
+    </div>
   </div>
 
   <!-- Between-waves countdown -->

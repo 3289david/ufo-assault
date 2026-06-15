@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.1",
-    "obj2gltf": "^3.2.0"
+    "obj2gltf": "^3.2.0",
+    "playwright": "^1.60.0"
   }
 }

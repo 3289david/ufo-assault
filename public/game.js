@@ -45,41 +45,55 @@ const LEVEL_RANGE_MULT = [1.0, 1.15, 1.3];
 
 // ── Renderer ──────────────────────────────────────────────────────────────────
 const canvas = document.getElementById('game-canvas');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 1.4;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x060c18);
-scene.fog = new THREE.FogExp2(0x060c18, 0.016);
+scene.background = new THREE.Color(0x0e2010);
+scene.fog = new THREE.FogExp2(0x0e2010, 0.011);
 
 // ── Camera ────────────────────────────────────────────────────────────────────
-const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 130);
-camera.position.set(0, 20, 16);
-camera.lookAt(0, 0, 0);
+const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 150);
+camera.position.set(0, 22, 20);
+camera.lookAt(0, 0, -2);
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 0, 0);
-controls.minDistance = 7;
-controls.maxDistance = 40;
-controls.maxPolarAngle = Math.PI / 2.05;
+controls.target.set(0, 0, -2);
+controls.minDistance = 8;
+controls.maxDistance = 50;
+controls.maxPolarAngle = Math.PI / 2.1;
 controls.enableDamping = true;
 controls.dampingFactor = 0.07;
 
 // ── Lighting ──────────────────────────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0x2a3f5f, 2.2));
+scene.add(new THREE.AmbientLight(0x8090b8, 2.8));
 
-const sun = new THREE.DirectionalLight(0xfff0d8, 2.8);
+const sun = new THREE.DirectionalLight(0xffe8c0, 3.5);
 sun.position.set(14, 22, 10);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left:-22, right:22, top:22, bottom:-22, near:1, far:80 });
 scene.add(sun);
-scene.add(new THREE.DirectionalLight(0x3355aa, 0.5)).position.set(-10, 10, -10);
+const fillLight = new THREE.DirectionalLight(0x4466bb, 1.2);
+fillLight.position.set(-10, 10, -10);
+scene.add(fillLight);
+
+// ── Ground plane (under tiles to fill any gaps) ───────────────────────────────
+{
+  const gnd = new THREE.Mesh(
+    new THREE.PlaneGeometry(80, 80),
+    new THREE.MeshLambertMaterial({ color: 0x1a3018 })
+  );
+  gnd.rotation.x = -Math.PI / 2;
+  gnd.position.y = -0.02;
+  gnd.receiveShadow = true;
+  scene.add(gnd);
+}
 
 // ── Starfield ─────────────────────────────────────────────────────────────────
 (function () {
@@ -163,10 +177,10 @@ async function buildGrid(onProgress) {
   ));
 
   const group = new THREE.Group();
-  const grassMat  = new THREE.MeshLambertMaterial({ color: 0x2a5e2a });
-  const pathMat   = new THREE.MeshLambertMaterial({ color: 0x7a5c3e });
-  const grassGeo  = new THREE.BoxGeometry(CELL_SIZE - 0.04, 0.16, CELL_SIZE - 0.04);
-  const pathGeo   = new THREE.BoxGeometry(CELL_SIZE - 0.04, 0.10, CELL_SIZE - 0.04);
+  const grassMat  = new THREE.MeshLambertMaterial({ color: 0x3a7a3a });
+  const pathMat   = new THREE.MeshLambertMaterial({ color: 0x9a7050 });
+  const grassGeo  = new THREE.BoxGeometry(CELL_SIZE, 0.18, CELL_SIZE);
+  const pathGeo   = new THREE.BoxGeometry(CELL_SIZE, 0.12, CELL_SIZE);
 
   for (let gx = 0; gx < GRID_SIZE; gx++) {
     for (let gz = 0; gz < GRID_SIZE; gz++) {
@@ -178,7 +192,10 @@ async function buildGrid(onProgress) {
         const { model: mName, rotY } = pathTileInfo(pathIdx);
         const src = models[mName] || models['tile-straight'];
         if (src) {
-          const t = src.clone(); t.position.set(wpos.x, 0, wpos.z); t.rotation.y = rotY;
+          const t = src.clone();
+          t.position.set(wpos.x, 0, wpos.z);
+          t.rotation.y = rotY;
+          t.scale.set(CELL_SIZE, 1, CELL_SIZE);
           group.add(t);
         } else {
           const m = new THREE.Mesh(pathGeo, pathMat);
@@ -192,16 +209,17 @@ async function buildGrid(onProgress) {
 
         if (tileModel) {
           tileModel.position.set(wpos.x, 0, wpos.z);
+          tileModel.scale.set(CELL_SIZE, 1, CELL_SIZE);
           group.add(tileModel);
         } else {
           const m = new THREE.Mesh(grassGeo, grassMat);
           m.position.set(wpos.x, 0, wpos.z); m.receiveShadow = true; group.add(m);
         }
 
-        // Sparse decorative details on plain grass tiles
+        // Sparse decorative details (not scaled — they sit ON the tile)
         if (r > 0.18 && r < 0.22 && models['detail-crystal']) {
           const d = models['detail-crystal'].clone();
-          d.position.set(wpos.x + (cellRand(gx+1,gz) - 0.5) * 0.8, 0, wpos.z + (cellRand(gx,gz+1) - 0.5) * 0.8);
+          d.position.set(wpos.x + (cellRand(gx+1,gz) - 0.5) * 0.6, 0.18, wpos.z + (cellRand(gx,gz+1) - 0.5) * 0.6);
           d.rotation.y = r * Math.PI * 2;
           group.add(d);
         }
@@ -212,14 +230,15 @@ async function buildGrid(onProgress) {
 
   scene.add(group);
 
-  // Grid border
+  // Grid border — half-extent = GRID_SIZE*CELL_SIZE/2 = 10
+  const HE = GRID_SIZE * CELL_SIZE / 2;
   const border = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(-10, 0.25, -10), new THREE.Vector3(10, 0.25, -10),
-      new THREE.Vector3(10, 0.25, 10),   new THREE.Vector3(-10, 0.25, 10),
-      new THREE.Vector3(-10, 0.25, -10),
+      new THREE.Vector3(-HE, 0.28, -HE), new THREE.Vector3(HE, 0.28, -HE),
+      new THREE.Vector3(HE, 0.28, HE),   new THREE.Vector3(-HE, 0.28, HE),
+      new THREE.Vector3(-HE, 0.28, -HE),
     ]),
-    new THREE.LineBasicMaterial({ color: 0x4fc3f7, opacity: 0.25, transparent: true })
+    new THREE.LineBasicMaterial({ color: 0x4fc3f7, opacity: 0.3, transparent: true })
   );
   scene.add(border);
 }
@@ -281,7 +300,7 @@ async function makeEnemyGroup(enemy) {
 
   try {
     const m = await loadGLB(`/assets/tower-defense/${enemy.model}.glb`);
-    m.scale.setScalar(1.05);
+    m.scale.setScalar(1.6);
     g.add(m);
   } catch {
     const col  = UFO_COL[enemy.type] || 0x2090c0;
@@ -299,13 +318,13 @@ async function makeEnemyGroup(enemy) {
 
   // Health bar — added to scene directly so it can billboard
   const hbBgMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.1, 0.12),
-    new THREE.MeshBasicMaterial({ color: 0x111111, depthTest: false, transparent: true, opacity: 0.8 })
+    new THREE.PlaneGeometry(1.6, 0.16),
+    new THREE.MeshBasicMaterial({ color: 0x111111, depthTest: false, transparent: true, opacity: 0.85 })
   );
   hbBgMesh.renderOrder = 10;
 
   const hbFillMat = new THREE.MeshBasicMaterial({ color: 0x44cc44, depthTest: false });
-  const hbFillMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.12), hbFillMat);
+  const hbFillMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.16), hbFillMat);
   hbFillMesh.renderOrder = 11;
 
   scene.add(hbBgMesh);
@@ -347,12 +366,14 @@ async function makeTowerGroup(tower) {
 
   try {
     const base = await loadGLB('/assets/tower-defense/tower-round-base.glb');
+    base.scale.set(1.8, 1.8, 1.8);
     g.add(base);
   } catch { /* use weapon alone */ }
 
   try {
     const weapon = await loadGLB(`/assets/tower-defense/weapon-${tower.type}.glb`);
-    weapon.position.y = 0.4;
+    weapon.position.y = 0.38;
+    weapon.scale.set(1.6, 1.6, 1.6);
     weapon.userData.isWeapon = true;
     g.add(weapon);
   } catch {
@@ -496,13 +517,19 @@ function updateHUD(s) {
   document.getElementById('total-waves').textContent   = s.totalWaves;
   document.getElementById('score-display').textContent = s.score;
   document.getElementById('kills-display').textContent = s.kills;
-  document.getElementById('lives-display').style.color = s.lives <= 5 ? '#f44336' : '';
+  document.getElementById('lives-stat-el').classList.toggle('danger', s.lives <= 5);
+
+  // Wave progress bar
+  const waveBar = document.getElementById('wave-progress-bar');
+  if (waveBar && s.totalWaves > 0) {
+    waveBar.style.width = `${Math.round((s.wave / s.totalWaves) * 100)}%`;
+  }
 
   const enemyStat = document.getElementById('enemy-count-stat');
   const enemyCount = document.getElementById('enemy-count');
   if (s.phase === 'playing' && !s.betweenWaves) {
     const total = s.enemies.length + s.spawnLeft;
-    enemyStat.style.display = total > 0 ? '' : 'none';
+    enemyStat.style.display = total > 0 ? 'flex' : 'none';
     enemyCount.textContent  = total;
   } else {
     enemyStat.style.display = 'none';
@@ -548,7 +575,7 @@ function refreshSelectedPanel(t, gold) {
   const btnUpg = document.getElementById('btn-upgrade');
   if (t.level < 3) {
     const cost = UPGRADE_COSTS[t.type]?.[t.level] ?? 0;
-    btnUpg.textContent = `Upgrade to Lv.${t.level + 1} (${cost}g)`;
+    btnUpg.textContent = `Upgrade Lv.${t.level + 1}  (${cost}g)`;
     btnUpg.classList.remove('hidden');
     btnUpg.classList.toggle('cant-afford', gold < cost);
     btnUpg.disabled = gold < cost;
@@ -559,7 +586,7 @@ function refreshSelectedPanel(t, gold) {
   // Sell button
   const baseSell = TOWER_UI[t.type]?.sellValue || 0;
   const sellVal  = Math.floor(baseSell * (1 + (t.level - 1) * 0.5));
-  document.getElementById('btn-sell').textContent = `Sell (${sellVal}g)`;
+  document.getElementById('btn-sell').textContent = `Sell for ${sellVal}g`;
 
   // Show range ring
   const wp = gridToWorld(t.gx, t.gz);
@@ -579,14 +606,14 @@ function showSelectedPanel(towerId) {
   selectedTower   = null;
   document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('sel-tower-info').classList.remove('hidden');
-  document.getElementById('placement-hint').classList.add('hidden');
+  document.getElementById('placement-hint').style.display = 'none';
   hoverMesh.visible = false;
 }
 
 function clearSelectedPanel() {
   selectedTowerId = null;
   document.getElementById('sel-tower-info').classList.add('hidden');
-  document.getElementById('placement-hint').classList.remove('hidden');
+  document.getElementById('placement-hint').style.display = '';
   hideRange();
 }
 
@@ -843,7 +870,7 @@ function animate() {
     if (body?.isGroup || body?.isMesh) body.rotation.y += dt * 1.1;
 
     // Billboard health bars toward camera
-    const pos = group.position.clone().add(new THREE.Vector3(0, 2.0, 0));
+    const pos = group.position.clone().add(new THREE.Vector3(0, 2.6, 0));
     const bg   = group.userData.hbBg;
     const fill = group.userData.hbFill;
     if (bg) {
@@ -853,7 +880,7 @@ function animate() {
       fill.quaternion.copy(camera.quaternion);
       // Offset fill so it's centered on ratio
       const ratio = group.userData.hpRatio ?? 1;
-      fill.position.x += ((ratio - 1) * 1.1) / 2;
+      fill.position.x += ((ratio - 1) * 1.6) / 2;
     }
   }
 
