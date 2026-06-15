@@ -334,7 +334,7 @@ class GameRoom {
     this.enemies.push({
       id: uid(), type, model: def.model,
       pathIndex: 0, progress: 0,
-      x: sp.x, y: 1.2, z: sp.z,
+      x: sp.x, y: 1.6, z: sp.z,
       hp: def.hp, maxHp: def.hp,
       speed: def.speed, reward: def.reward,
       dead: false,

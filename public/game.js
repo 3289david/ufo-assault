@@ -97,16 +97,16 @@ scene.add(fillLight);
 
 // ── Starfield ─────────────────────────────────────────────────────────────────
 (function () {
-  const N = 700;
+  const N = 800;
   const pos = new Float32Array(N * 3);
   for (let i = 0; i < N; i++) {
-    pos[i*3]   = (Math.random() - 0.5) * 130;
-    pos[i*3+1] = Math.random() * 40 + 8;
-    pos[i*3+2] = (Math.random() - 0.5) * 130;
+    pos[i*3]   = (Math.random() - 0.5) * 160;
+    pos[i*3+1] = Math.random() * 50 + 12;
+    pos[i*3+2] = (Math.random() - 0.5) * 160;
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.055 })));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, sizeAttenuation: true })));
 })();
 
 // ── Model Loader (GLB with pending-coalescing) ────────────────────────────────
@@ -300,7 +300,7 @@ async function makeEnemyGroup(enemy) {
 
   try {
     const m = await loadGLB(`/assets/tower-defense/${enemy.model}.glb`);
-    m.scale.setScalar(1.6);
+    m.scale.setScalar(2.0);
     g.add(m);
   } catch {
     const col  = UFO_COL[enemy.type] || 0x2090c0;
@@ -870,7 +870,7 @@ function animate() {
     if (body?.isGroup || body?.isMesh) body.rotation.y += dt * 1.1;
 
     // Billboard health bars toward camera
-    const pos = group.position.clone().add(new THREE.Vector3(0, 2.6, 0));
+    const pos = group.position.clone().add(new THREE.Vector3(0, 3.2, 0));
     const bg   = group.userData.hbBg;
     const fill = group.userData.hbFill;
     if (bg) {
